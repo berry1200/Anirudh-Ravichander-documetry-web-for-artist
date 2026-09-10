@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { RELEASES, LATEST_10_SONGS } from '../data/catalogue';
 import { Release, LatestSong } from '../types';
-import { ArrowLeft, ArrowRight, Disc, Volume2, VolumeX, Eye, X, RotateCw, Music2, Sparkles, Radio } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Disc, Eye, X, RotateCw, Music2, Sparkles, Radio, ExternalLink } from 'lucide-react';
 
 export const ThrowableDeck: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -10,80 +10,14 @@ export const ThrowableDeck: React.FC = () => {
   const [isThrowing, setIsThrowing] = useState(false);
   const [throwDirection, setThrowDirection] = useState<1 | -1>(1);
   const [inspectingRelease, setInspectingRelease] = useState<Release | null>(null);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isSleeveFlipped, setIsSleeveFlipped] = useState(false);
   const [activeSideTab, setActiveSideTab] = useState<'latest' | 'curated'>('latest');
   const [activePreviewTrack, setActivePreviewTrack] = useState<string | null>(null);
 
   const deckRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
 
   const currentRelease = RELEASES[currentIndex];
-
-  // Sound generator using Web Audio API for warm analog turntable needle sub-tone
-  const toggleAudio = (frequency = 55) => {
-    if (isPlayingAudio && !frequency) {
-      if (gainNodeRef.current && audioCtxRef.current) {
-        gainNodeRef.current.gain.setTargetAtTime(0, audioCtxRef.current.currentTime, 0.08);
-        setTimeout(() => {
-          oscillatorRef.current?.stop();
-          oscillatorRef.current?.disconnect();
-          setIsPlayingAudio(false);
-        }, 120);
-      } else {
-        setIsPlayingAudio(false);
-      }
-    } else {
-      try {
-        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioCtx();
-        audioCtxRef.current = ctx;
-
-        // Subterranean analog bass tone with warm detuned harmonic
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        const gain = ctx.createGain();
-
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(frequency, ctx.currentTime);
-
-        osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(frequency * 2.005, ctx.currentTime);
-
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(360, ctx.currentTime);
-
-        gain.gain.setValueAtTime(0.001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.07, ctx.currentTime + 0.3);
-
-        osc1.connect(filter);
-        osc2.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc1.start();
-        osc2.start();
-
-        oscillatorRef.current = osc1;
-        gainNodeRef.current = gain;
-        setIsPlayingAudio(true);
-      } catch {
-        setIsPlayingAudio(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-        audioCtxRef.current.close().catch(() => {});
-      }
-    };
-  }, []);
 
   const triggerThrow = useCallback(
     (direction: 1 | -1) => {
@@ -251,23 +185,24 @@ export const ThrowableDeck: React.FC = () => {
                 {/* 10 Songs List */}
                 <div className="divide-y divide-[rgba(237,231,220,0.08)] max-h-[360px] overflow-y-auto pr-1">
                   {LATEST_10_SONGS.map((song) => {
-                    const isPlayingThis = activePreviewTrack === song.title;
+                    const isSelected = activePreviewTrack === song.title;
                     return (
                       <div
                         key={song.rank}
                         id={`latest-track-${song.rank}`}
                         onClick={() => {
-                          setActivePreviewTrack(isPlayingThis ? null : song.title);
-                          toggleAudio(isPlayingThis ? 0 : 55 + song.rank * 12);
+                          setActivePreviewTrack(isSelected ? null : song.title);
                         }}
-                        className="py-2.5 flex items-center justify-between group cursor-pointer hover:bg-[#0A0C0E]/70 px-2.5 rounded transition-colors"
+                        className={`py-2.5 flex items-center justify-between group cursor-pointer px-2.5 rounded transition-colors ${
+                          isSelected ? 'bg-[#E8913C]/10 border border-[#E8913C]/30' : 'hover:bg-[#0A0C0E]/70'
+                        }`}
                       >
                         <div className="flex items-center space-x-3 truncate mr-2">
-                          <span className="font-mono text-[11px] text-[#E8913C] w-5 text-right font-medium">
+                          <span className={`font-mono text-[11px] w-5 text-right font-medium ${isSelected ? 'text-[#E8913C]' : 'text-[#6C7378]'}`}>
                             #{song.rank}
                           </span>
                           <div className="truncate">
-                            <span className="text-[13px] font-display font-medium text-[#EDE7DC] group-hover:text-[#FFF] transition-colors block truncate">
+                            <span className={`text-[13px] font-display font-medium block truncate ${isSelected ? 'text-[#FFF]' : 'text-[#EDE7DC] group-hover:text-[#FFF]'}`}>
                               {song.title}
                             </span>
                             <span className="text-[11px] text-[#6C7378] block">
@@ -276,28 +211,41 @@ export const ThrowableDeck: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-3 shrink-0">
+                        <div className="flex items-center space-x-2 shrink-0">
                           <span className="font-mono text-[11px] text-[#6C7378]">
                             {song.duration}
                           </span>
-                          <span
-                            className={`p-1 rounded-full border transition-colors ${
-                              isPlayingThis
-                                ? 'border-[#E8913C] text-[#E8913C]'
-                                : 'border-[rgba(237,231,220,0.15)] text-[#6C7378] group-hover:text-[#EDE7DC]'
-                            }`}
+                          <a
+                            href={`https://music.youtube.com/search?q=${encodeURIComponent(song.title + ' ' + song.movie + ' Anirudh')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Search & stream on YouTube Music"
+                            className="px-2 py-0.5 rounded-full border border-[#FF0000]/40 bg-[#FF0000]/10 text-[#FF4E4E] hover:bg-[#FF0000] hover:text-white transition-colors text-[9.5px] font-mono uppercase tracking-wider flex items-center space-x-1"
                           >
-                            <Radio className="w-3 h-3" />
-                          </span>
+                            <span>YT MUSIC</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-[rgba(237,231,220,0.12)] flex items-center justify-between text-[10.5px] font-mono text-[#6C7378]">
-                  <span>10 TRACKS COMPILED</span>
-                  <span className="text-[#E8913C]">TAP TRACK TO AUDITION TONE</span>
+                <div className="mt-4 pt-3 border-t border-[rgba(237,231,220,0.12)] flex flex-wrap items-center justify-between gap-2 text-[10.5px] font-mono text-[#6C7378]">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF0000]" />
+                    <span className="text-[#EDE7DC]">STREAM ON MUSIC.YOUTUBE.COM</span>
+                  </div>
+                  <a
+                    href="https://music.youtube.com/search?q=Anirudh+Ravichander"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#FF4E4E] hover:underline flex items-center space-x-1"
+                  >
+                    <span>EXPLORE ANIRUDH ON YT MUSIC</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               </div>
             ) : (
@@ -387,24 +335,17 @@ export const ThrowableDeck: React.FC = () => {
                 <span>{isSleeveFlipped ? 'SHOW FRONT ARTWORK' : 'FLIP SLEEVE (BACK)'}</span>
               </button>
 
-              <button
-                type="button"
-                id="audition-frequency-btn"
-                onClick={() => toggleAudio()}
-                className="inline-flex items-center space-x-2 rounded-full border border-[rgba(237,231,220,0.18)] hover:border-[rgba(237,231,220,0.4)] px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] text-[#9EA5A8] hover:text-[#EDE7DC] transition-all duration-200 cursor-pointer bg-[#101317]"
+              <a
+                href="https://open.spotify.com/artist/4zCH9qm4R2DADamUHMCcr0"
+                target="_blank"
+                rel="noopener noreferrer"
+                id="stream-spotify-btn"
+                className="inline-flex items-center space-x-2 rounded-full border border-[rgba(237,231,220,0.2)] hover:border-[#1DB954] px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] text-[#9EA5A8] hover:text-[#EDE7DC] transition-all duration-200 cursor-pointer bg-[#101317]"
               >
-                {isPlayingAudio ? (
-                  <>
-                    <VolumeX className="w-3.5 h-3.5 text-[#E8913C]" />
-                    <span>MUTE 55HZ SUB-TONE</span>
-                  </>
-                ) : (
-                  <>
-                    <Volume2 className="w-3.5 h-3.5 text-[#2E6B72]" />
-                    <span>55HZ TURNTABLE SUB-TONE</span>
-                  </>
-                )}
-              </button>
+                <Music2 className="w-3.5 h-3.5 text-[#1DB954]" />
+                <span>STREAM ON SPOTIFY</span>
+                <ExternalLink className="w-3 h-3 text-[#6C7378]" />
+              </a>
             </div>
           </div>
 
@@ -549,11 +490,11 @@ export const ThrowableDeck: React.FC = () => {
                       </div>
                     ) : (
                       /* FRONT COVER ARTWORK VIEW (Matching User's Reference Image) */
-                      <div className="relative my-3 flex-1 rounded overflow-hidden border border-[rgba(237,231,220,0.1)] bg-[#0A0C0E]">
+                      <div className="relative my-3 flex-1 rounded overflow-hidden border border-[rgba(237,231,220,0.15)] bg-[#0A0C0E]">
                         <img
                           src={card.coverImage}
                           alt={`${card.title} cover`}
-                          className="w-full h-full object-cover object-center filter grayscale contrast-125"
+                          className="w-full h-full object-cover object-center filter contrast-105"
                           referrerPolicy="no-referrer"
                           loading="lazy"
                         />

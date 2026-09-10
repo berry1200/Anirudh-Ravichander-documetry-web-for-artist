@@ -17,6 +17,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onNavigate }) => {
   }, []);
 
   const links = [
+    { label: 'SUNG HITS (YT MUSIC)', href: '#youtube-music' },
     { label: '10 LATEST TRACKS', href: '#releases' },
     { label: 'VINYL SLEEVES', href: '#releases' },
     { label: 'MANIFESTO', href: '#statement' },

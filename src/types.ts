@@ -50,3 +50,20 @@ export interface TourDate {
   program: string;
   status: 'TICKETS' | 'LIMITED' | 'SOLD OUT' | 'RSVP';
 }
+
+export interface SungSong {
+  id: string;
+  title: string;
+  movie: string;
+  year: string;
+  duration: string;
+  singers: string;
+  genre: string;
+  category: 'Latest' | 'Mass' | 'Romance' | 'Dance' | 'Classics';
+  youtubeVideoId: string;
+  youtubeMusicUrl: string;
+  youtubeMusicSearchUrl: string;
+  streams: string;
+  lyricsHighlight: string;
+  thumbnail: string;
+}

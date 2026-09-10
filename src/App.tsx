@@ -3,6 +3,7 @@ import { Navigation } from './components/Navigation';
 import { PortalHero } from './components/PortalHero';
 import { StatementFold } from './components/StatementFold';
 import { ThrowableDeck } from './components/ThrowableDeck';
+import { YouTubeMusicSection } from './components/YouTubeMusicSection';
 import { RosterAndDates } from './components/RosterAndDates';
 import { CloseSection } from './components/CloseSection';
 
@@ -51,6 +52,9 @@ export default function App() {
 
         {/* 4. Releases with Throwable Deck */}
         <ThrowableDeck />
+
+        {/* 4.5. YouTube Music - Songs Sung By Anirudh */}
+        <YouTubeMusicSection />
 
         {/* 5. Roster and Dates */}
         <RosterAndDates />

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { VINYL_TEXTURE_IMAGE } from '../data/catalogue';
+import { VINYL_TEXTURE_IMAGE, ANIRUDH_PORTRAIT_IMG } from '../data/catalogue';
 
 export const StatementFold: React.FC = () => {
   const containerRef = useRef<HTMLElement>(null);
@@ -115,8 +115,16 @@ export const StatementFold: React.FC = () => {
           referrerPolicy="no-referrer"
           loading="lazy"
         />
-        {/* Subtle center spindle hole to reinforce physical record sleeve nature */}
-        <div className="absolute inset-0 m-auto w-12 h-12 rounded-full border border-[rgba(237,231,220,0.3)] bg-[#0A0C0E]/70" />
+        {/* Center label with Anirudh artist portrait */}
+        <div className="absolute inset-0 m-auto w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-[#E8913C]/40 bg-[#0A0C0E] overflow-hidden shadow-inner flex items-center justify-center">
+          <img
+            src={ANIRUDH_PORTRAIT_IMG}
+            alt="Anirudh Ravichander Spindle Center"
+            className="w-full h-full object-cover filter contrast-125"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute w-4 h-4 rounded-full border border-[rgba(237,231,220,0.5)] bg-[#0A0C0E] shadow-inner" />
+        </div>
       </div>
     </section>
   );
