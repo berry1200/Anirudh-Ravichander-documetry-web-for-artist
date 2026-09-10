@@ -1,0 +1,6 @@
+{
+  "name": "Anirudh Ravichander — The Archival Sessions",
+  "description": "The official vinyl archive and XV World Tour portal for Indian composer and musical maestro Anirudh Ravichander.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
